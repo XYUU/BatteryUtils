@@ -8,6 +8,8 @@ Exposes ACPI interface for battery controls.
 2. start charge threshold
 3. stop charge threshold
 
+[Download](https://raw.githubusercontent.com/XYUU/BatteryUtils/master/BatteryUtils/bin/Release/BatteryUtils.exe)
+
 This project is licensed under the GPLv3. See COPYING for details.
 Copyright 2016-2017 XYUU
 
