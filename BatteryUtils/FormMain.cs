@@ -120,8 +120,9 @@ namespace BatteryUtils
         private IntPtr handle = IntPtr.Zero;
         private void applyThreshold_Click(object sender, EventArgs e)
         {
-            decimal start = startThreshold.Value;
+            decimal start = startThreshold.Value - 1;
             decimal stop = stopThreshold.Value;
+            stop = stop == 100 ? 0x00 : stop;
             //先执行停止指令
             SetBatteryThresh(handle, stop, DEFAULT_BATTERY_ID, SET_BATTERY_THRESH_STOP);
             //再执行开始指令
@@ -131,7 +132,7 @@ namespace BatteryUtils
         private static bool SetBatteryThresh(IntPtr handle, decimal value, byte id, uint controlCode)
         {
             SET_BATTERY_THRESH_IN batteryThresh = new SET_BATTERY_THRESH_IN();
-            batteryThresh.Value = (byte)(value - 1);
+            batteryThresh.Value = (byte)value;
             batteryThresh.BatteryID = id;
             int batteryThreshSize = Marshal.SizeOf(batteryThresh);
             IntPtr batteryThreshPointer = Marshal.AllocHGlobal(batteryThreshSize);
@@ -196,11 +197,13 @@ namespace BatteryUtils
 
                 DeviceIoControl(handle, GET_BATTERY_THRESH_START, batteryThreshSize, batteryThreshPointer, batteryThreshOutSize, batteryThreshOutPointer);
                 GET_BATTERY_THRESH_OUT outInfo = (GET_BATTERY_THRESH_OUT)Marshal.PtrToStructure(batteryThreshOutPointer, typeof(GET_BATTERY_THRESH_OUT));
-                startThreshold.Value = outInfo.Value + 1;
+                decimal startValue = outInfo.Value + 1;
+                startThreshold.Value = startValue >= 100 ? 30 : startValue;
 
                 DeviceIoControl(handle, GET_BATTERY_THRESH_STOP, batteryThreshSize, batteryThreshPointer, batteryThreshOutSize, batteryThreshOutPointer);
                 outInfo = (GET_BATTERY_THRESH_OUT)Marshal.PtrToStructure(batteryThreshOutPointer, typeof(GET_BATTERY_THRESH_OUT));
-                stopThreshold.Value = outInfo.Value + 1;
+                byte stopValue = outInfo.Value;
+                stopThreshold.Value = stopValue == 0x00 || stopValue >= 100 ? 100 : stopValue;
             }
             finally
             {
